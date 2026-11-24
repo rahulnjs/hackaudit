@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Participant declarations used as evidence by the judging auditor.",
+  "title": "Hackathon submission manifest",
+  "type": "object",
+  "required": [
+    "team_name",
+    "project_name",
+    "problem_statement_id",
+    "architecture",
+    "models",
+    "guardrails_and_reliability",
+    "declared_mocks_or_limitations",
+    "demo_plan",
+    "how_to_run"
+  ],
+  "properties": {
+    "team_name": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "problem_statement_id": {
+      "type": "string"
+    },
+    "architecture": {
+      "type": "object",
+      "required": [
+        "agent_pattern",
+        "framework",
+        "entrypoint",
+        "core_agent_files"
+      ],
+      "properties": {
+        "agent_pattern": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        },
+        "entrypoint": {
+          "type": "string"
+        },
+        "core_agent_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "model_id",
+          "provider",
+          "role",
+          "why_chosen"
+        ],
+        "properties": {
+          "model_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "why_chosen": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "guardrails_and_reliability": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "declared_mocks_or_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "demo_plan": {
+      "type": "object",
+      "required": [
+        "cold_start_seconds_expected",
+        "scripted_path",
+        "known_weak_spot",
+        "fallback_if_model_down"
+      ],
+      "properties": {
+        "cold_start_seconds_expected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scripted_path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "known_weak_spot": {
+          "type": "string"
+        },
+        "fallback_if_model_down": {
+          "type": "string"
+        }
+      }
+    },
+    "how_to_run": {
+      "type": "object",
+      "required": [
+        "setup_command",
+        "demo_url"
+      ],
+      "properties": {
+        "setup_command": {
+          "type": "string"
+        },
+        "demo_url": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
