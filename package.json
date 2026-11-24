@@ -1,10 +1,20 @@
 {
   "name": "hackaudit",
   "version": "1.0.0",
-  "description": "Forensic audit trail for AI-coded hackathon submissions",
-  "bin": { "hackaudit": "bin/hackaudit.js" },
-  "files": ["bin", "src", "README.md"],
-  "engines": { "node": ">=18" },
+  "description": "Organizer verification, agent-led judging and reporting for hackathon submissions",
+  "bin": {
+    "hackaudit": "bin/hackaudit.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "license": "MIT",
-  "scripts": { "test": "node test/self-test.js" }
+  "scripts": {
+    "test": "node test/self-test.js"
+  }
 }

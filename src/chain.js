@@ -36,18 +36,4 @@ function canonical(value) {
   return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical(value[key])).join(',') + '}'
 }
 
-function usageText(records, auditText) {
-  const lines = auditText.split('\n')
-  return records.map(record => JSON.stringify({
-    n: record.n,
-    team_id: record.team_id,
-    model: record.model,
-    path: record.path,
-    ts: record.ts,
-    tokens: { input: record.tokens.prompt, output: record.tokens.completion, total: record.tokens.total },
-    tokens_source: record.tokens_source ?? 'api',
-    audit_line_sha256: hashLine(lines[record.index]),
-  }) + '\n').join('')
-}
-
-module.exports = { GENESIS, encodeEntry, hashLine, parseLine, lastLine, appendEntry, canonical, usageText }
+module.exports = { GENESIS, encodeEntry, hashLine, parseLine, lastLine, appendEntry, canonical }

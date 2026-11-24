@@ -1,25 +1,29 @@
-# Hackaudit — Participant setup
+# Hackaudit — organizer review
 
-Before you start coding, set up Hackaudit once in **each codebase** your team will submit.
+Requires Node.js 18 or later. Participants initialize their own repositories with the separate `hackbase` package and submit their code together with `.hack/`.
 
-**Prerequisite:** Node.js 18 or later, with `npx` available.
+## Verify a submission
 
-## 1. Initialize each codebase
-
-From the root of each codebase, run:
+Clone the submission or extract its ZIP. From its root, run trusted organizer-installed tooling:
 
 ```sh
-npx hackaudit init team-nova
+node /path/to/trusted/hackaudit/bin/hackaudit.js audit --html --out /path/to/organizer/reports
 ```
 
-Replace `team-nova` with your registered team name. Use the same name across your team's codebases.
+Use an absolute trusted CLI path when working inside a submission so participant-local executables cannot shadow organizer tooling. This reads the evidence and writes forensic JSON/HTML. It never runs the participant's logging runtime or application. Git is optional. A clean integrity result is not a hackathon score or proof of complete logging. Missing organizer toolkit files in a participant repository are not violations.
 
-## 2. Give your coding agent the project rules
+## Score with an existing coding agent
 
-Open the generated `.hack/agent-rules.md` and add its contents to your coding agent's project instructions before the first AI-assisted edit. If you use more than one agent on the codebase, give each agent the same rules.
+Give the organizer's agent the submission, problem statement and trusted `src/toolkit/auditor/SKILL.md` from this repository. The skill performs the requirements/code review, assigns evidence-backed scores and creates a separate sealed assessed report. The CLI does not launch a model or choose scores. Live Demo and Q&A remains judge-owned.
 
-Tell your agent to use `npx hackaudit log` to record each file it edits. It should use the same UTC timestamp in the source header and the log entry. The command updates both `.hack/audit.log` and `.hack/usage.jsonl`. If token counts are unavailable, the agent should omit them.
+```sh
+npx hackaudit render /path/to/assessed.json --out /path/to/organizer/assessed-reports
+```
 
-## 3. Include the audit files in your submission
+The shared report template and contract are under `src/toolkit/report/`. Token summaries are available with `npx hackaudit usage --report` from a submission root.
 
-Keep the generated `.hack/` directory in each codebase throughout the event. Include it when you submit the codebase, including if you submit a ZIP. Git commits are optional for this setup.
+## Build the leaderboard
+
+Ask the organizer's existing agent to follow trusted `src/toolkit/leaderboard/SKILL.md` over the event's assessed reports. It verifies report links and evidence, separates pending/review/quarantined submissions, then produces leaderboard HTML and CSV. Only finalized, signed-off assessments enter the final ranking.
+
+Organizer skills, rubric, manifest schema and report templates stay in this package. Do not install or execute a participant-provided copy of organizer tooling.

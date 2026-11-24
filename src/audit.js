@@ -3,15 +3,17 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 const { randomUUID } = require('node:crypto')
-const { GENESIS, hashLine, parseLine, canonical, usageText } = require('./chain')
+const { GENESIS, hashLine, parseLine, canonical } = require('./chain')
 const { toolkit, teamNamePattern, stat, readFile, directory, validLogPath } = require('./paths')
 const { renderHtml, reportMarker } = require('./report-html')
+const { inspectPrompts } = require('./prompt-report')
+const { inspectUsage } = require('./usage-report')
+const { validateReport, template } = require('./report-contract')
 const { version } = require('../package.json')
 
 const skipped = new Set(['.git', '.hack', 'node_modules', '.venv', 'dist', 'build',
   'audit-reports', 'package-lock.json', 'npm-shrinkwrap.json', 'pnpm-lock.yaml',
   'yarn.lock', 'bun.lock', 'bun.lockb', 'Cargo.lock', 'poetry.lock', 'uv.lock'])
-const fields = ['prompt', 'completion', 'total']
 const headerForms = [
   /^\/\/\s*audit:\s*(.+)$/,
   /^#\s*audit:\s*(.+)$/,
@@ -22,11 +24,9 @@ const headerForms = [
 function validEntry(entry) {
   return entry && Number.isSafeInteger(entry.n) && entry.n >= 0 &&
     typeof entry.team_id === 'string' && typeof entry.model === 'string' && entry.model.trim() &&
-    validLogPath(entry.path) && fields.every(key =>
-      Number.isSafeInteger(entry.tokens?.[key]) && entry.tokens[key] >= 0) &&
+    validLogPath(entry.path) &&
     typeof entry.ts === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(entry.ts) &&
-    Number.isFinite(Date.parse(entry.ts)) && new Date(entry.ts).toISOString() === entry.ts &&
-    (entry.tokens_source === undefined || ['api', 'estimate', 'absent'].includes(entry.tokens_source))
+    Number.isFinite(Date.parse(entry.ts)) && new Date(entry.ts).toISOString() === entry.ts
 }
 
 function inspectLog(log, team) {
@@ -48,7 +48,7 @@ function inspectLog(log, team) {
       expected !== prevHash ? 'BROKEN' : index === 0 ? 'GENESIS' : 'OK'
     if (!valid) decode.invalid_indexes.push(index)
     const record = { index, n: valid ? json.n : null, path: valid ? json.path : null,
-      model: valid ? json.model : null, tokens_total: valid ? json.tokens.total : null,
+      model: valid ? json.model : null,
       ts: valid ? json.ts : null, state }
     if (state === 'GENESIS' || state === 'OK') chain.verified_lines++
     if (chain.first_break_index === null && (state === 'BROKEN' || state === 'INVALID')) {
@@ -72,9 +72,6 @@ function inspectLog(log, team) {
     if (previous && json.model !== previous.model) {
       addFinding('model_switch', previous.model + ' → ' + json.model)
     }
-    if (json.tokens.total === 0 || json.tokens_source === 'absent') {
-      addFinding('tokens_absent', 'Token usage is zero or unavailable', 'info')
-    }
     if (lastTimestamp && json.ts < lastTimestamp) addFinding('ts_out_of_order', 'Timestamp precedes the prior entry')
     lastTimestamp = json.ts
     byPath.set(json.path, json)
@@ -96,7 +93,10 @@ function walk(root, parent = '') {
 function sourceFiles(root) {
   const git = spawnSync('git', ['ls-files', '--cached', '-z', '--', '.'],
     { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, windowsHide: true })
-  if (git.status === 0) return git.stdout.split('\0').filter(Boolean)
+  if (git.status === 0) {
+    const files = git.stdout.split('\0').filter(Boolean)
+    return files.length ? files : walk(root)
+  }
   if (!stat(path.join(root, '.git')) &&
       (git.error?.code === 'ENOENT' || /not a git repository/.test(git.stderr || ''))) {
     return walk(root)
@@ -171,7 +171,7 @@ function outputDirectory(root, destination) {
   return current
 }
 
-function saveReport(root, out, report, html) {
+function reportProject(root) {
   let project
   try {
     project = JSON.parse(readFile(root, 'package.json'))?.name
@@ -179,7 +179,12 @@ function saveReport(root, out, report, html) {
     // A missing or invalid package.json is optional metadata.
   }
   const slug = value => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100)
-  const projectName = (typeof project === 'string' && slug(project)) || slug(path.basename(root)) || 'project'
+  return (typeof project === 'string' && slug(project)) || slug(path.basename(root)) || 'project'
+}
+
+function saveReport(root, out, report, html) {
+  validateReport(report)
+  const projectName = report.project_name
   const dir = outputDirectory(root, out)
   const basename = report.team.team_name + '-' + projectName + '-hackaudit-report'
   const filename = path.join(dir, basename + '.json')
@@ -232,10 +237,10 @@ function printReport(report, decoded, selected, filename) {
       continue
     }
     for (const entry of decoded) console.log(JSON.stringify(entry, null, 2))
-    console.log('n | path | model | tokens.total | ts | chain')
+    console.log('n | path | model | ts | chain')
     for (const entry of report.chain.entries) {
       console.log([entry.n ?? entry.index, entry.path, entry.model === null ? null : JSON.stringify(entry.model),
-        entry.tokens_total, entry.ts, entry.state].map(value => value ?? '-').join(' | '))
+        entry.ts, entry.state].map(value => value ?? '-').join(' | '))
     }
   }
   console.error('Report: ' + filename)
@@ -243,8 +248,9 @@ function printReport(report, decoded, selected, filename) {
 
 function audit(root, out, selected, html = false) {
   let saved
+  const teamFile = stat(path.join(root, 'hackathon.json')) || !stat(path.join(root, '.hack/team.json')) ? 'hackathon.json' : '.hack/team.json'
   try {
-    saved = JSON.parse(readFile(root, '.hack/team.json'))
+    saved = JSON.parse(readFile(root, teamFile))
   } catch {
     // Report the missing binding with the other required artifacts below.
   }
@@ -254,13 +260,19 @@ function audit(root, out, selected, html = false) {
   const rulesPresent = readFile(root, '.hack/agent-rules.md') !== null
   const toolkitPresent = toolkit.every(file => readFile(root, '.hack/' + file) !== null)
   const result = inspectLog(log, teamName)
-  const usage = readFile(root, '.hack/usage.jsonl')
-  const usageStatus = usage === null ? 'ABSENT' : result.chain.status !== 'VERIFIED' ? 'UNVERIFIED' :
-    usage === usageText(result.decoded, log) ? 'VERIFIED' : 'OUT_OF_SYNC'
   const reconciliation = reconcile(root, result.byPath, teamName)
   const violations = [...result.violations]
-  for (const [present, artifact] of [[validTeam, 'team.json'], [log !== null, 'audit.log'],
-    [rulesPresent, 'agent-rules.md'], [toolkitPresent, 'judging toolkit']]) {
+  const usageResult = inspectUsage(readFile(root, '.hack/usage.log'), teamName)
+  const tokenUsage = usageResult.report
+  if (tokenUsage.status === 'BROKEN') {
+    violations.push({ kind: 'usage_chain_break', artifact: 'usage.log', index: tokenUsage.first_break_index })
+  }
+  const prompts = inspectPrompts(readFile(root, '.hack/prompts.jsonl'), teamName)
+  if (prompts.status === 'BROKEN') {
+    violations.push({ kind: 'prompt_chain_break', artifact: 'prompts.jsonl', index: prompts.first_break_index })
+  }
+  for (const [present, artifact] of [[validTeam, path.basename(teamFile)], [log !== null, 'audit.log'],
+    [rulesPresent, 'agent-rules.md']]) {
     if (!present) violations.push({ kind: 'missing_or_invalid_artifact', artifact })
   }
   for (const mismatch of reconciliation.team_mismatch) {
@@ -268,18 +280,26 @@ function audit(root, out, selected, html = false) {
   }
   const report = {
     schema: 'hackaudit/report@1',
+    ui_template: template,
+    assessment: null,
+    project_name: reportProject(root),
     tool_version: version,
     report_id: randomUUID(),
     audited_at: new Date().toISOString(),
-    team: { team_name: teamName, initialized_at: saved?.initialized_at ?? null, init_version: saved?.init_version ?? null },
+    team: { team_name: teamName, initialized_at: typeof saved?.initialized_at === 'string' ? saved.initialized_at : null,
+      init_version: typeof saved?.init_version === 'string' ? saved.init_version : null },
     artifacts: { audit_log_present: log !== null, line_count: result.chain.total_lines,
       agent_rules_present: rulesPresent, toolkit_present: toolkitPresent },
     chain: result.chain,
     decode: result.decode,
-    usage_log: { status: usageStatus, path: '.hack/usage.jsonl' },
+    token_usage: tokenUsage,
+    usage_records: usageResult.records,
+    prompt_log: { ...prompts, path: '.hack/prompts.jsonl' },
+    file_evidence: [...new Set([...result.byPath.keys(), ...reconciliation.header_only])].sort().map(file =>
+      ({ path: file, header: sourceHeader(root, file), latest_record: result.byPath.get(file) ?? null })),
     reconcile: reconciliation,
     fingerprint: { findings: result.findings, advisory: true },
-    verdict: { ok: violations.length === 0, violations, notes: 'machine-generated evidence only; this tool never scores' },
+    verdict: { ok: violations.length === 0, violations, notes: 'machine-generated integrity evidence; rubric scores, when supplied, come from the reviewing agent and judge' },
   }
   report.chain_link = { algorithm: 'sha256', prev: null, body_sha256: hashLine(canonical(report)), seq: null }
   const { filename, htmlPath } = saveReport(root, out, report, html)
@@ -288,4 +308,4 @@ function audit(root, out, selected, html = false) {
   return report.verdict.ok ? 0 : 1
 }
 
-module.exports = { audit, inspectLog, validEntry }
+module.exports = { audit, inspectLog, validEntry, saveReport }

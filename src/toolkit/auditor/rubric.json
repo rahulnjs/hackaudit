@@ -1,0 +1,75 @@
+{
+  "id": "hackaudit/rubric@1",
+  "criteria": [
+    {
+      "id": 1,
+      "name": "Problem Fit",
+      "weight": 20,
+      "anchors": {
+        "1": "Fails the core organizer requirements.",
+        "3": "Solves the required problem end to end with implementation evidence.",
+        "5": "Anticipates relevant edge cases and demonstrates their handling."
+      }
+    },
+    {
+      "id": 2,
+      "name": "Agentic Architecture",
+      "weight": 20,
+      "anchors": {
+        "1": "When agentic behavior is explicitly required, only a single prompt with no evidenced agentic control flow is implemented.",
+        "3": "Tool-calling and state are implemented and reached.",
+        "5": "Purposeful reflection or critique loops improve behavior with bounded failure handling."
+      }
+    },
+    {
+      "id": 3,
+      "name": "Model Fit and Guardrails",
+      "weight": 15,
+      "anchors": {
+        "1": "When model-based behavior is explicitly required, model choice is unjustified and effective guardrails are absent.",
+        "3": "Model fit is justified and meaningful input/output validation is used.",
+        "5": "Appropriate routing, caps and fallbacks are implemented and supported by evidence."
+      }
+    },
+    {
+      "id": 4,
+      "name": "Code Quality and Security",
+      "weight": 12,
+      "anchors": {
+        "1": "A tracked likely live secret or comparably severe evidenced security failure.",
+        "3": "Readable, maintainable implementation with usable setup and operating documentation.",
+        "5": "Reproducible operation, robust failure handling and no material issues found within the stated review coverage."
+      }
+    },
+    {
+      "id": 5,
+      "name": "Evaluation and Observability",
+      "weight": 8,
+      "anchors": {
+        "1": "No meaningful evaluation or observability is evidenced.",
+        "3": "Relevant unit tests and useful diagnostic observations cover the main behavior.",
+        "5": "Representative golden evaluations, failure cases and actionable observability demonstrate reliable behavior."
+      }
+    },
+    {
+      "id": 6,
+      "name": "UX and Integration",
+      "weight": 5,
+      "anchors": {
+        "1": "The intended user interface or integration is broken.",
+        "3": "A clear, usable primary interface such as a clean CLI completes the main workflow.",
+        "5": "Appropriate streaming, human-in-the-loop interaction and robust integration handle the intended user workflow."
+      }
+    },
+    {
+      "id": 7,
+      "name": "Live Demo and Q&A",
+      "weight": 20,
+      "anchors": {
+        "1": "Judge evidence shows only a scripted happy path and an inability to explain the implementation.",
+        "3": "Judge evidence shows the application running live and surviving one hostile probe.",
+        "5": "Judge evidence covers cold start, a model swap and judge-chosen input with credible technical explanations."
+      }
+    }
+  ]
+}

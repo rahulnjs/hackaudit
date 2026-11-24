@@ -1,0 +1,2407 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hackaudit Ops Ledger report v2 with agent-led assessment",
+  "type": "object",
+  "required": [
+    "schema",
+    "ui_template",
+    "assessment",
+    "project_name",
+    "tool_version",
+    "report_id",
+    "audited_at",
+    "team",
+    "artifacts",
+    "chain",
+    "decode",
+    "token_usage",
+    "usage_records",
+    "prompt_log",
+    "file_evidence",
+    "reconcile",
+    "fingerprint",
+    "verdict",
+    "chain_link"
+  ],
+  "properties": {
+    "schema": {
+      "const": "hackaudit/report@1"
+    },
+    "ui_template": {
+      "const": "hackaudit/ops-ledger@2"
+    },
+    "project_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "report_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "audited_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+    },
+    "team": {
+      "type": "object",
+      "required": [
+        "team_name",
+        "initialized_at",
+        "init_version"
+      ],
+      "properties": {
+        "team_name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{2,64}$"
+        },
+        "initialized_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "init_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "audit_log_present",
+        "line_count",
+        "agent_rules_present",
+        "toolkit_present"
+      ],
+      "properties": {
+        "audit_log_present": {
+          "type": "boolean"
+        },
+        "line_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "agent_rules_present": {
+          "type": "boolean"
+        },
+        "toolkit_present": {
+          "type": "boolean",
+          "description": "Legacy participant-embedded organizer toolkit presence; informational only and not a Hackbase submission requirement."
+        }
+      },
+      "additionalProperties": false
+    },
+    "chain": {
+      "type": "object",
+      "required": [
+        "status",
+        "verified_lines",
+        "total_lines",
+        "first_break_index",
+        "entries"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "BROKEN",
+            "ABSENT"
+          ]
+        },
+        "verified_lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_break_index": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "decode": {
+      "type": "object",
+      "required": [
+        "invalid_indexes"
+      ],
+      "properties": {
+        "invalid_indexes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "token_usage": {
+      "type": "object",
+      "required": [
+        "status",
+        "path",
+        "record_count",
+        "first_break_index",
+        "sessions",
+        "gaps",
+        "totals",
+        "provenance"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "BROKEN",
+            "ABSENT"
+          ]
+        },
+        "path": {
+          "const": ".hack/usage.log"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_break_index": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gap"
+          }
+        },
+        "totals": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/totals"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "usage_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/usageRecord"
+      }
+    },
+    "prompt_log": {
+      "type": "object",
+      "required": [
+        "status",
+        "total_lines",
+        "first_break_index",
+        "entries",
+        "path"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "BROKEN",
+            "ABSENT"
+          ]
+        },
+        "total_lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_break_index": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/prompt"
+          }
+        },
+        "path": {
+          "const": ".hack/prompts.jsonl"
+        }
+      },
+      "additionalProperties": false
+    },
+    "file_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "header",
+          "latest_record"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "header": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/header"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_record": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/latest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reconcile": {
+      "type": "object",
+      "required": [
+        "matched",
+        "header_only",
+        "log_only",
+        "team_mismatch"
+      ],
+      "properties": {
+        "matched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "header_only": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "log_only": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "team_mismatch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mismatch"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fingerprint": {
+      "type": "object",
+      "required": [
+        "findings",
+        "advisory"
+      ],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "advisory": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "verdict": {
+      "type": "object",
+      "required": [
+        "ok",
+        "violations",
+        "notes"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/violation"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "chain_link": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "prev",
+        "body_sha256",
+        "seq"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "sha256"
+        },
+        "prev": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "assessment": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/assessment"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+    },
+    "tokens": {
+      "type": "object",
+      "required": [
+        "input",
+        "output",
+        "cache_read",
+        "cache_write"
+      ],
+      "properties": {
+        "input": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache_read": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache_write": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "totals": {
+      "type": "object",
+      "required": [
+        "input",
+        "output",
+        "cache_read",
+        "cache_write",
+        "total"
+      ],
+      "properties": {
+        "input": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache_read": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cache_write": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "required": [
+        "index",
+        "n",
+        "path",
+        "model",
+        "ts",
+        "state"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "n": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ts": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "enum": [
+            "GENESIS",
+            "OK",
+            "INVALID",
+            "BROKEN",
+            "UNVERIFIED"
+          ]
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actual": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "detail",
+        "severity"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "advisory"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "violation": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "path": {
+          "type": "string"
+        },
+        "artifact": {
+          "type": "string"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actual": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "found": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "prompt": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "index",
+            "state",
+            "id",
+            "team_id",
+            "model",
+            "ts",
+            "text"
+          ],
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "state": {
+              "enum": [
+                "VERIFIED",
+                "BROKEN",
+                "UNVERIFIED"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "team_id": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "ts": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "index",
+            "state"
+          ],
+          "properties": {
+            "index": {
+              "$ref": "#/$defs/count"
+            },
+            "state": {
+              "const": "INVALID"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "session": {
+      "type": "object",
+      "required": [
+        "agent",
+        "session_id",
+        "model",
+        "scope",
+        "tokens",
+        "total"
+      ],
+      "properties": {
+        "agent": {
+          "enum": [
+            "claude",
+            "gigacode",
+            "codex"
+          ]
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "turn",
+            "session"
+          ]
+        },
+        "tokens": {
+          "$ref": "#/$defs/tokens"
+        },
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "gap": {
+      "type": "object",
+      "required": [
+        "agent",
+        "session_id",
+        "ts",
+        "reason"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ts": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "usageRecord": {
+      "type": "object",
+      "required": [
+        "schema",
+        "n",
+        "id",
+        "team_id",
+        "agent",
+        "session_id",
+        "model",
+        "scope",
+        "source",
+        "tokens",
+        "reason",
+        "ts"
+      ],
+      "properties": {
+        "schema": {
+          "const": "hackaudit/usage@1"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "agent": {
+          "enum": [
+            "claude",
+            "gigacode",
+            "codex"
+          ]
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "enum": [
+            "turn",
+            "session",
+            null
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/tokens"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ts": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "header": {
+      "type": "object",
+      "required": [
+        "team",
+        "model",
+        "ts"
+      ],
+      "properties": {
+        "team": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "ts": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "latest": {
+      "type": "object",
+      "required": [
+        "n",
+        "team_id",
+        "model",
+        "path",
+        "ts"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "ts": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "chain": {
+          "enum": [
+            "GENESIS",
+            "OK",
+            "INVALID",
+            "BROKEN",
+            "UNVERIFIED"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "mismatch": {
+      "type": "object",
+      "required": [
+        "path",
+        "found",
+        "expected"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "found": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "citation": {
+      "type": "object",
+      "required": [
+        "path",
+        "line",
+        "detail"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "judgeRecord": {
+      "type": "object",
+      "required": [
+        "judge",
+        "recorded_at",
+        "evidence",
+        "signoff"
+      ],
+      "properties": {
+        "judge": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/time"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/citation"
+          },
+          "minItems": 1
+        },
+        "signoff": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoredCriterion": {
+      "type": "object",
+      "required": [
+        "score",
+        "weighted_points",
+        "confidence",
+        "citations"
+      ],
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "weighted_points": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/citation"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "rubric",
+        "status",
+        "assessor",
+        "assessed_at",
+        "basis_report_sha256",
+        "evidence",
+        "criteria",
+        "code_subtotal",
+        "code_available",
+        "code_maximum",
+        "final_total",
+        "judge_record",
+        "questions",
+        "second_review",
+        "overrides"
+      ],
+      "properties": {
+        "rubric": {
+          "const": "hackaudit/rubric@1"
+        },
+        "status": {
+          "enum": [
+            "provisional",
+            "needs_review",
+            "final"
+          ]
+        },
+        "assessor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessed_at": {
+          "$ref": "#/$defs/time"
+        },
+        "basis_report_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence": {
+          "type": "object",
+          "required": [
+            "commit",
+            "tree_sha256",
+            "problem_statement_sha256",
+            "preflight_sha256"
+          ],
+          "properties": {
+            "commit": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tree_sha256": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "problem_statement_sha256": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "preflight_sha256": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "criteria": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "prefixItems": [
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 1
+                },
+                "name": {
+                  "const": "Problem Fit"
+                },
+                "weight": {
+                  "const": 20
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 20
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 2
+                },
+                "name": {
+                  "const": "Agentic Architecture"
+                },
+                "weight": {
+                  "const": 20
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 20
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 3
+                },
+                "name": {
+                  "const": "Model Fit and Guardrails"
+                },
+                "weight": {
+                  "const": 15
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 15
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 4
+                },
+                "name": {
+                  "const": "Code Quality and Security"
+                },
+                "weight": {
+                  "const": 12
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 12
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 5
+                },
+                "name": {
+                  "const": "Evaluation and Observability"
+                },
+                "weight": {
+                  "const": 8
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 6
+                },
+                "name": {
+                  "const": "UX and Integration"
+                },
+                "weight": {
+                  "const": 5
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "weight",
+                "score",
+                "weighted_points",
+                "confidence",
+                "rationale",
+                "citations",
+                "gaps",
+                "score_cap",
+                "gate_reasons"
+              ],
+              "properties": {
+                "id": {
+                  "const": 7
+                },
+                "name": {
+                  "const": "Live Demo and Q&A"
+                },
+                "weight": {
+                  "const": 20
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "weighted_points": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 20
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "unavailable"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/citation"
+                  }
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "score_cap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gate_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "score",
+                    "weighted_points",
+                    "gaps"
+                  ],
+                  "properties": {
+                    "score": {
+                      "const": null
+                    },
+                    "weighted_points": {
+                      "const": null
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                {
+                  "$ref": "#/$defs/scoredCriterion"
+                }
+              ]
+            }
+          ],
+          "items": false
+        },
+        "code_subtotal": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code_available": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80
+        },
+        "code_maximum": {
+          "const": 80
+        },
+        "final_total": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "judge_record": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/judgeRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "question",
+              "citations"
+            ],
+            "properties": {
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/citation"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "second_review": {
+          "type": "object",
+          "required": [
+            "status",
+            "notes"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "unavailable",
+                "recorded"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "criterion_id",
+              "previous_score",
+              "score",
+              "reason",
+              "judge_record"
+            ],
+            "properties": {
+              "criterion_id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 7
+              },
+              "previous_score": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "judge_record": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "final_total"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "provisional",
+                "needs_review"
+              ]
+            },
+            "final_total": {
+              "const": null
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "final_total",
+            "judge_record",
+            "criteria",
+            "code_subtotal",
+            "code_available"
+          ],
+          "properties": {
+            "status": {
+              "const": "final"
+            },
+            "final_total": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "judge_record": {
+              "$ref": "#/$defs/judgeRecord"
+            },
+            "criteria": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/scoredCriterion"
+              }
+            },
+            "code_subtotal": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 80
+            },
+            "code_available": {
+              "const": 80
+            }
+          },
+          "additionalProperties": true
+        }
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "criteria"
+              ],
+              "properties": {
+                "criteria": {
+                  "type": "array",
+                  "prefixItems": [
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {
+                      "type": "object",
+                      "required": [
+                        "score"
+                      ],
+                      "properties": {
+                        "score": {
+                          "const": null
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ],
+                  "items": false
+                }
+              },
+              "additionalProperties": true
+            },
+            {
+              "type": "object",
+              "required": [
+                "judge_record"
+              ],
+              "properties": {
+                "judge_record": {
+                  "$ref": "#/$defs/judgeRecord"
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

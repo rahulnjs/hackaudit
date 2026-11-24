@@ -10,7 +10,6 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hackaudit-'))
 const cli = path.resolve(__dirname, '../bin/hackaudit.js')
 const log = path.join(root, '.hack/audit.log')
 const team = 'team-nova'
-const toolkit = ['auditor/SKILL.md', 'leaderboard/SKILL.md', 'manifest/schema.json']
 const ts = '2026-11-23T00:00:00.000Z'
 const fixture = (file, n = 0) => ({
   n, team_id: team, model: 'declared-model', path: file,
@@ -40,38 +39,22 @@ function test(label, check) {
   }
 }
 
+fs.mkdirSync(path.join(root, '.hack'))
+fs.writeFileSync(path.join(root, '.hack/team.json'), JSON.stringify({ team_name: team, initialized_at: ts, init_version: '1.0.0' }))
+fs.writeFileSync(path.join(root, '.hack/agent-rules.md'), 'Participant logging instructions\n')
+for (const name of ['audit.log', 'usage.log', 'prompts.jsonl']) fs.writeFileSync(path.join(root, '.hack', name), '')
+
 try {
-  test('Missing team and missing command', () => {
+  test('Reject participant commands and invalid audit options', () => {
     assert.equal(run('init').status, 1)
     assert.match(run('init').stderr, /Usage/)
     assert.equal(run().status, 1)
     assert.equal(run('audit', '--unknown').status, 2)
   })
-  test('Install evidence and toolkit', () => {
-    assert.equal(run('init', team).status, 0)
-    assert.equal(JSON.parse(read('.hack/team.json')).team_name, team)
-    assert.equal(read('.hack/audit.log'), '')
-    assert.equal(read('.hack/usage.jsonl'), '')
-    for (const file of ['agent-rules.md', ...toolkit]) assert.ok(read('.hack/' + file))
-  })
-  test('Team-bound directive', () => {
-    const rules = read('.hack/agent-rules.md')
-    assert.match(rules, /team-nova/)
-    assert.doesNotMatch(rules, /<TEAM_NAME>/)
-    assert.equal(rules.split('I cannot modify hackathon audit logs as per judging policy.').length, 2)
-  })
-  test('Idempotent initialization', () => {
-    fs.writeFileSync(log, 'existing\n')
-    const original = read('.hack/team.json')
-    assert.equal(run('init', team).status, 0)
-    assert.equal(read('.hack/team.json'), original)
-    assert.equal(fs.readFileSync(log, 'utf8'), 'existing\n')
-  })
-  test('Reject rebinding', () => {
-    const before = read('.hack/team.json')
-    assert.equal(run('init', 'other-team').status, 1)
-    assert.equal(read('.hack/team.json'), before)
-  })
+
+
+
+
 
   const first = appendEntry('', fixture('match.js'))
   const second = appendEntry(first.newText, fixture('missing.js'))
@@ -180,41 +163,8 @@ try {
     assert.equal(run('audit').status, 0)
     assert.equal(report().fingerprint.findings[0].kind, 'nonzero_start')
   })
-  test('Record input and output tokens in both logs', () => {
-    fs.writeFileSync(log, '')
-    assert.equal(run('log', 'match.js', 'fixture-model', '--ts', ts, '--input', '120', '--output', '48').status, 0)
-    const usage = JSON.parse(read('.hack/usage.jsonl'))
-    assert.deepEqual(usage.tokens, { input: 120, output: 48, total: 168 })
-    assert.equal(usage.audit_line_sha256, sha(read('.hack/audit.log').trimEnd()))
-    assert.equal(run('audit', '--chain').status, 0)
-    assert.equal(report().usage_log.status, 'VERIFIED')
-  })
-  test('Recover usage after an interrupted write without a duplicate event', () => {
-    const original = read('.hack/audit.log')
-    fs.writeFileSync(path.join(root, '.hack/usage.jsonl'), '')
-    assert.equal(run('audit', '--chain').status, 0)
-    assert.equal(report().usage_log.status, 'OUT_OF_SYNC')
-    assert.equal(run('log', 'match.js', 'fixture-model', '--ts', ts, '--input', '120', '--output', '48').status, 0)
-    assert.equal(read('.hack/audit.log'), original)
-    assert.equal(JSON.parse(read('.hack/usage.jsonl')).tokens.total, 168)
-  })
-  test('Record missing usage and preserve customized agent rules', () => {
-    const secondTimestamp = '2026-11-23T00:00:01.000Z'
-    assert.equal(run('log', 'match.js', 'fixture-model', '--ts', secondTimestamp).status, 0)
-    const rows = read('.hack/usage.jsonl').trimEnd().split('\n').map(JSON.parse)
-    assert.deepEqual(rows[1].tokens, { input: 0, output: 0, total: 0 })
-    assert.equal(rows[1].tokens_source, 'absent')
-    assert.equal(rows[1].n, 1)
-    const directive = read('.hack/agent-rules.md')
-    const directiveFile = path.join(root, '.hack/agent-rules.md')
-    fs.writeFileSync(directiveFile, directive.split('\n## RECORD BOTH LOGS\n', 1)[0])
-    assert.equal(run('init', team).status, 0)
-    assert.equal(read('.hack/agent-rules.md'), directive)
-    fs.writeFileSync(directiveFile, 'custom directive\n')
-    assert.equal(run('init', team).status, 0)
-    assert.equal(read('.hack/agent-rules.md'), 'custom directive\n')
-  })
-  console.log('PASS ' + passed + '/20')
+
+  console.log('PASS ' + passed + '/13')
 } finally {
   fs.rmSync(root, { recursive: true, force: true })
 }

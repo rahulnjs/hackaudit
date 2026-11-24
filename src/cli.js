@@ -1,11 +1,11 @@
 // Parse CLI options and dispatch each command.
 const fs = require('node:fs')
-const init = require('./init')
 const { audit } = require('./audit')
-const log = require('./log')
+const { usageReport } = require('./usage-report')
+const render = require('./render')
 const { version } = require('../package.json')
 
-const usage = 'Usage: hackaudit init <teamname> | hackaudit log <path> <model> [--input <n> --output <n> [--total <n>]] [--source <api|estimate|absent>] [--ts <timestamp>] | hackaudit audit [--chain] [--decode] [--reconcile] [--fingerprint] [--html] [--out <dir>]'
+const usage = 'Usage: hackaudit audit [--chain] [--decode] [--reconcile] [--fingerprint] [--html] [--out <dir>] | hackaudit usage [--report] | hackaudit render <report.json> [--out <dir>]'
 const sections = ['chain', 'decode', 'reconcile', 'fingerprint']
 
 function main([command, ...args]) {
@@ -19,14 +19,15 @@ function main([command, ...args]) {
   }
   try {
     const root = fs.realpathSync(process.cwd())
-    if (command === 'init') {
-      if (args.length !== 1) throw new Error('Usage: hackaudit init <teamname>')
-      init(root, args[0])
+    if (command === 'render') {
+      render(root, args)
       return 0
     }
-    if (command === 'log') {
-      log(root, args)
-      return 0
+    if (command === 'usage') {
+      if (args.length && (args.length !== 1 || args[0] !== '--report')) throw new Error('Usage: hackaudit usage [--report]')
+      const report = usageReport(root)
+      console.log(JSON.stringify(report, null, 2))
+      return report.status === 'VERIFIED' ? 0 : 1
     }
     if (command === 'audit') {
       const selected = new Set()

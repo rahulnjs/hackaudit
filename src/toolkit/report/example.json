@@ -1,0 +1,83 @@
+{
+  "schema": "hackaudit/report@1",
+  "ui_template": "hackaudit/ops-ledger@2",
+  "assessment": null,
+  "project_name": "example-project",
+  "tool_version": "1.0.0",
+  "report_id": "00000000-0000-4000-8000-000000000001",
+  "audited_at": "2000-01-01T00:00:00.000Z",
+  "team": {
+    "team_name": "unknown-team",
+    "initialized_at": null,
+    "init_version": null
+  },
+  "artifacts": {
+    "audit_log_present": false,
+    "line_count": 0,
+    "agent_rules_present": false,
+    "toolkit_present": false
+  },
+  "chain": {
+    "status": "ABSENT",
+    "verified_lines": 0,
+    "total_lines": 0,
+    "first_break_index": null,
+    "entries": []
+  },
+  "decode": {
+    "invalid_indexes": []
+  },
+  "token_usage": {
+    "status": "ABSENT",
+    "path": ".hack/usage.log",
+    "record_count": 0,
+    "first_break_index": null,
+    "sessions": [],
+    "gaps": [],
+    "totals": null,
+    "provenance": "agent-reported; source authenticity and capture completeness are not independently verified"
+  },
+  "usage_records": [],
+  "prompt_log": {
+    "status": "ABSENT",
+    "total_lines": 0,
+    "first_break_index": null,
+    "entries": [],
+    "path": ".hack/prompts.jsonl"
+  },
+  "file_evidence": [],
+  "reconcile": {
+    "matched": [],
+    "header_only": [],
+    "log_only": [],
+    "team_mismatch": []
+  },
+  "fingerprint": {
+    "findings": [],
+    "advisory": true
+  },
+  "verdict": {
+    "ok": false,
+    "violations": [
+      {
+        "kind": "missing_or_invalid_artifact",
+        "artifact": "team.json"
+      },
+      {
+        "kind": "missing_or_invalid_artifact",
+        "artifact": "audit.log"
+      },
+      {
+        "kind": "missing_or_invalid_artifact",
+        "artifact": "agent-rules.md"
+      }
+    ],
+    "notes": "machine-generated integrity evidence; rubric scores, when supplied, come from the reviewing agent and judge"
+  },
+  "chain_link": {
+    "algorithm": "sha256",
+    "prev": null,
+    "body_sha256": "f3b56c2416e96515e055be660e44f49895a506f1b85d1b0801903cc71f8ec03c",
+    "seq": null
+  }
+}
